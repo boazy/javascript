@@ -1341,7 +1341,7 @@ Other Style Guides
 
 ## Iterators and Generators
 
-  <a name="iterators--nope"></a><a name="11.1"></a>
+  ~~<a name="iterators--nope"></a><a name="11.1"></a>~~
   - [11.1](#iterators--nope) Don't use iterators. Prefer JavaScript's higher-order functions instead of loops like `for-in` or `for-of`. eslint: [`no-iterator`](http://eslint.org/docs/rules/no-iterator.html) [`no-restricted-syntax`](http://eslint.org/docs/rules/no-restricted-syntax)
 
     > Why? This enforces our immutable rule. Dealing with pure functions that return values is easier to reason about than side effects.
@@ -1382,7 +1382,11 @@ Other Style Guides
     ```
 
   <a name="generators--nope"></a><a name="11.2"></a>
-  - [11.2](#generators--nope) Don't use generators for now.
+  - [11.2](#generators--nope) Avoid using generators unless necessary.
+  
+  For iteration and collection operations (map, reduce, filter, fold, etc.) prefer functional style, unless generators make code significantly more readable.
+  
+  For concurrent coroutines using promises and async/await is always clearer. Avoid generator-heavy libraries like co or koa.
 
     > Why? They don't transpile well to ES5.
 
@@ -1761,6 +1765,39 @@ Other Style Guides
 
   <a name="comparison--eqeqeq"></a><a name="15.1"></a>
   - [15.1](#comparison--eqeqeq) Use `===` and `!==` over `==` and `!=`. eslint: [`eqeqeq`](http://eslint.org/docs/rules/eqeqeq.html)
+  
+  <a name="comparison--eqeqeq"></a><a name="15.1"></a>
+  - [15.1a](#comparison--eqeqeq) You can use `==` and `!=` for checking for equality or inequality to *either* null or undefined. eslint: [`eqeqeq always, null: ignore`](http://eslint.org/docs/rules/eqeqeq#always)
+
+    ```javascript
+    // bad
+    foo = " 000 \t\n";
+    if (foo == 0) {
+      throw err; // throws? wat!
+    }
+
+    // good
+    if (foo != null) {
+      // only true when foo is not null or undefined.
+    }
+
+    // good
+    if (foo == null) {
+      // only true in 2 very useful cases:
+      // foo === null
+      // foo === undefined
+    }
+    
+    // bad
+    if (foo === null || foo == undefined) {
+      // ...
+    }
+
+    // very bad
+    if (typeof foo === 'undefined' || foo === null) {
+      // why so ugly.
+    }
+    ```
 
   <a name="comparison--if"></a><a name="15.2"></a>
   - [15.2](#comparison--if) Conditional statements such as the `if` statement evaluate their expression using coercion with the `ToBoolean` abstract method and always follow these simple rules:
