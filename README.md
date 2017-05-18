@@ -2940,7 +2940,7 @@ Other Style Guides
   - [24.1](#accessors--not-required) Accessor functions for properties are not required.
 
   <a name="accessors--no-getters-setters"></a><a name="23.2"></a>
-  - [24.2](#accessors--no-getters-setters) Do not use JavaScript getters/setters as they cause unexpected side effects and are harder to test, maintain, and reason about. Instead, if you do make accessor functions, use getVal() and setVal('hello').
+  - [24.2](#accessors--no-getters-setters) You may use JavaScript getters/setters, but always prefer having an accessor function unless it makes code unreadable. Getters should never have side effects, and setters should not change unexpected properties. Avoid using getters and setters for non type-checked classes (when not using TypeScript)
 
     ```javascript
     // bad
