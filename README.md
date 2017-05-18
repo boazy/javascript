@@ -1017,6 +1017,46 @@ Other Style Guides
 **[⬆ back to top](#table-of-contents)**
 
 
+## Asynchronous Flow
+
+  <a name="easync--no-callbacks"></a><a name="8a.1"></a>
+  - [8a.1](#async--no-callbacks) When you write a function that completes asynchronously, don't add a callback argument for handling the asynchronous result or completion event. Instead, return a promise, or use an async function (if you're using Babel or your target supports ES7).
+
+    ```javascript
+    // bad
+    function queryDb(query, done) {
+      // ...
+      if (err != null) {
+        done(err, null);
+      } else {
+        done(null, result)
+      }
+    }
+
+    // good
+    function queryDb(query) {
+      return new Pormise((resolve, reject) => {
+         if (err != null) {
+           reject(err)
+         } else {
+           resolve(result)
+         }
+      });
+    }
+
+    // best
+    async function queryDb(query) {
+      // ...
+      if (err != null) {
+        throw err;
+      }
+      return result
+    }
+    ```
+
+  **[⬆ back to top](#table-of-contents)**
+
+
 ## Classes & Constructors
 
   <a name="constructors--use-class"></a><a name="9.1"></a>
