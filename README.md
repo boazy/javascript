@@ -1029,17 +1029,18 @@ Other Style Guides
       if (err != null) {
         done(err, null);
       } else {
-        done(null, result)
+        done(null, result);
       }
     }
 
     // good
     function queryDb(query) {
+      // ...
       return new Pormise((resolve, reject) => {
          if (err != null) {
-           reject(err)
+           reject(err);
          } else {
-           resolve(result)
+           resolve(result);
          }
       });
     }
@@ -1050,7 +1051,47 @@ Other Style Guides
       if (err != null) {
         throw err;
       }
-      return result
+      return result;
+    }
+    ```
+  <a name="async--promsify"></a><a name="8a.2"></a>
+  - [8a.2](#async--promisify) If you want to use a legacy callback style
+      function, wrap it with a promisifier like [es6-promisify](https://github.com/digitaldesignlabs/es6-promisify) and then use it as a promise-returning
+      function.
+
+    ```javascript
+    // bad
+    const fs = require('fs');
+    
+    fs.readFile('foo.txt', (err, data) => {
+      if (err != null) {
+        console.log(`ERROR: ${err}`);
+      } else {
+        console.log(`SUCCESS: ${data}`);
+      }
+    });
+
+    // good
+    const promisify = require('es6-promisify');
+    const fs = require('fs');
+    const readFile = promisify(fs.readFile);
+    
+    readFile('foo.txt').then(data => {
+      console.log(`SUCCESS: ${value}`);
+    }).catch(err => {
+      console.log(`ERROR: ${err}`);
+    });
+    
+    // best
+    const promisify = require('es6-promisify');
+    const fs = require('fs');
+    const readFile = promisify(fs.readFile);
+    
+    try {
+      const data = await readFile('foo.txt');
+      console.log(`SUCCESS: ${value}`);
+    } catch (err) {
+      console.log(`ERROR: ${err}`);
     }
     ```
 
