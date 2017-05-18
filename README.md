@@ -460,7 +460,7 @@ Other Style Guides
 ## Destructuring
 
   <a name="destructuring--object"></a><a name="5.1"></a>
-  - [5.1](#destructuring--object) Use object destructuring when accessing and using multiple properties of an object. jscs: [`requireObjectDestructuring`](http://jscs.info/rule/requireObjectDestructuring)
+  - [5.1](#destructuring--object) Use object destructuring when accessing and using multiple properties of an object. eslint: [`prefer-destructuring`](http://eslint.org/docs/rules/prefer-destructuring) jscs: [`requireObjectDestructuring`](http://jscs.info/rule/requireObjectDestructuring)
 
     > Why? Destructuring saves you from creating temporary references for those properties.
 
@@ -486,7 +486,7 @@ Other Style Guides
     ```
 
   <a name="destructuring--array"></a><a name="5.2"></a>
-  - [5.2](#destructuring--array) Use array destructuring. jscs: [`requireArrayDestructuring`](http://jscs.info/rule/requireArrayDestructuring)
+  - [5.2](#destructuring--array) Use array destructuring. eslint: [`prefer-destructuring`](http://eslint.org/docs/rules/prefer-destructuring) jscs: [`requireArrayDestructuring`](http://jscs.info/rule/requireArrayDestructuring)
 
     ```javascript
     const arr = [1, 2, 3, 4];
@@ -1017,6 +1017,87 @@ Other Style Guides
 **[⬆ back to top](#table-of-contents)**
 
 
+## Asynchronous Flow
+
+  <a name="easync--no-callbacks"></a><a name="8a.1"></a>
+  - [8a.1](#async--no-callbacks) When you write a function that completes asynchronously, don't add a callback argument for handling the asynchronous result or completion event. Instead, return a promise, or use an async function (if you're using Babel or your target supports ES7).
+
+    ```javascript
+    // bad
+    function queryDb(query, done) {
+      // ...
+      if (err != null) {
+        done(err, null);
+      } else {
+        done(null, result);
+      }
+    }
+
+    // good
+    function queryDb(query) {
+      // ...
+      return new Pormise((resolve, reject) => {
+         if (err != null) {
+           reject(err);
+         } else {
+           resolve(result);
+         }
+      });
+    }
+
+    // best
+    async function queryDb(query) {
+      // ...
+      if (err != null) {
+        throw err;
+      }
+      return result;
+    }
+    ```
+  <a name="async--promsify"></a><a name="8a.2"></a>
+  - [8a.2](#async--promisify) If you want to use a legacy callback style
+      function, wrap it with a promisifier like [es6-promisify](https://github.com/digitaldesignlabs/es6-promisify) and then use it as a promise-returning
+      function.
+
+    ```javascript
+    // bad
+    const fs = require('fs');
+    
+    fs.readFile('foo.txt', (err, data) => {
+      if (err != null) {
+        console.log(`ERROR: ${err}`);
+      } else {
+        console.log(`SUCCESS: ${data}`);
+      }
+    });
+
+    // good
+    const promisify = require('es6-promisify');
+    const fs = require('fs');
+    const readFile = promisify(fs.readFile);
+    
+    readFile('foo.txt').then(data => {
+      console.log(`SUCCESS: ${value}`);
+    }).catch(err => {
+      console.log(`ERROR: ${err}`);
+    });
+    
+    // best
+    const promisify = require('es6-promisify');
+    const fs = require('fs');
+    const readFile = promisify(fs.readFile);
+    
+    try {
+      const data = await readFile('foo.txt');
+      console.log(`SUCCESS: ${value}`);
+    } catch (err) {
+      console.log(`ERROR: ${err}`);
+    }
+    ```
+
+  **[⬆ back to top](#table-of-contents)**
+
+
 ## Classes & Constructors
 
   <a name="constructors--use-class"></a><a name="9.1"></a>
@@ -1342,47 +1423,14 @@ Other Style Guides
 ## Iterators and Generators
 
   <a name="iterators--nope"></a><a name="11.1"></a>
-  - [11.1](#iterators--nope) Don't use iterators. Prefer JavaScript's higher-order functions instead of loops like `for-in` or `for-of`. eslint: [`no-iterator`](http://eslint.org/docs/rules/no-iterator.html) [`no-restricted-syntax`](http://eslint.org/docs/rules/no-restricted-syntax)
-
-    > Why? This enforces our immutable rule. Dealing with pure functions that return values is easier to reason about than side effects.
-
-    > Use `map()` / `every()` / `filter()` / `find()` / `findIndex()` / `reduce()` / `some()` / ... to iterate over arrays, and `Object.keys()` / `Object.values()` / `Object.entries()` to produce arrays so you can iterate over objects.
-
-    ```javascript
-    const numbers = [1, 2, 3, 4, 5];
-
-    // bad
-    let sum = 0;
-    for (let num of numbers) {
-      sum += num;
-    }
-    sum === 15;
-
-    // good
-    let sum = 0;
-    numbers.forEach(num => sum += num);
-    sum === 15;
-
-    // best (use the functional force)
-    const sum = numbers.reduce((total, num) => total + num, 0);
-    sum === 15;
-
-    // bad
-    const increasedByOne = [];
-    for (let i = 0; i < numbers.length; i++) {
-      increasedByOne.push(numbers[i] + 1);
-    }
-
-    // good
-    const increasedByOne = [];
-    numbers.forEach(num => increasedByOne.push(num + 1));
-
-    // best (keeping it functional)
-    const increasedByOne = numbers.map(num => num + 1);
-    ```
+  - ~~[11.1](#iterators--nope) Don't use iterators. Prefer JavaScript's higher-order functions instead of loops like `for-in` or `for-of`~~
 
   <a name="generators--nope"></a><a name="11.2"></a>
-  - [11.2](#generators--nope) Don't use generators for now.
+  - [11.2](#generators--nope) Avoid using generators unless necessary.
+  
+  For iteration and collection operations (map, reduce, filter, fold, etc.) prefer functional style, unless generators make code significantly more readable.
+  
+  For concurrent coroutines using promises and async/await is always clearer. Avoid generator-heavy libraries like co or koa.
 
     > Why? They don't transpile well to ES5.
 
@@ -1761,6 +1809,39 @@ Other Style Guides
 
   <a name="comparison--eqeqeq"></a><a name="15.1"></a>
   - [15.1](#comparison--eqeqeq) Use `===` and `!==` over `==` and `!=`. eslint: [`eqeqeq`](http://eslint.org/docs/rules/eqeqeq.html)
+  
+  <a name="comparison--eqeqeq"></a><a name="15.1"></a>
+  - [15.1a](#comparison--eqeqeq) You can use `==` and `!=` for checking for equality or inequality to *either* null or undefined. eslint: [`eqeqeq always, null: ignore`](http://eslint.org/docs/rules/eqeqeq#always)
+
+    ```javascript
+    // bad
+    foo = " 000 \t\n";
+    if (foo == 0) {
+      throw err; // throws? wat!
+    }
+
+    // good
+    if (foo != null) {
+      // only true when foo is not null or undefined.
+    }
+
+    // good
+    if (foo == null) {
+      // only true in 2 very useful cases:
+      // foo === null
+      // foo === undefined
+    }
+    
+    // bad
+    if (foo === null || foo == undefined) {
+      // ...
+    }
+
+    // very bad
+    if (typeof foo === 'undefined' || foo === null) {
+      // why so ugly.
+    }
+    ```
 
   <a name="comparison--if"></a><a name="15.2"></a>
   - [15.2](#comparison--if) Conditional statements such as the `if` statement evaluate their expression using coercion with the `ToBoolean` abstract method and always follow these simple rules:
@@ -2940,7 +3021,7 @@ Other Style Guides
   - [24.1](#accessors--not-required) Accessor functions for properties are not required.
 
   <a name="accessors--no-getters-setters"></a><a name="23.2"></a>
-  - [24.2](#accessors--no-getters-setters) Do not use JavaScript getters/setters as they cause unexpected side effects and are harder to test, maintain, and reason about. Instead, if you do make accessor functions, use getVal() and setVal('hello').
+  - [24.2](#accessors--no-getters-setters) You may use JavaScript getters/setters, but always prefer having an accessor function unless it makes code unreadable. Getters should never have side effects, and setters should not change unexpected properties. Avoid using getters and setters for non type-checked classes (when not using TypeScript)
 
     ```javascript
     // bad
